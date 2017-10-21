@@ -85,6 +85,7 @@ CircleCollider2D:
   m_Material: {fileID: 0}
   m_IsTrigger: 1
   m_UsedByEffector: 0
+  m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.2
@@ -130,7 +131,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0059cfdba0be1bd4082c9666087c0091, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cooldownTime: 0.5
+  _cooldownTime: 0.1
   _projectilePrefab: {fileID: 114088663366416032, guid: c0247a85493bbc54a8f47a7a2c9dbd81,
     type: 2}
 --- !u!114 &114535164535761890
@@ -145,6 +146,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _speed: 5
+  PlayerLives: 3
 --- !u!212 &212824809356921158
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -175,8 +177,15 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
+  m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300012, guid: 8d18f6d2b73e89b4882fbf3bb5aedb4b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 1
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
