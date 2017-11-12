@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using SpaceShooter.States;
 
 namespace SpaceShooter
 {
-	public class LevelContoller : MonoBehaviour
+	public class LevelController : MonoBehaviour
 	{
-		public static LevelContoller Current
+		public static LevelController Current
 		{
 			get; private set;
 		}
@@ -14,10 +15,7 @@ namespace SpaceShooter
 		[SerializeField]
 		private Spawner _enemySpawner;
 
-        [SerializeField]
-        private Spawner _playerSpawner;
-
-        [SerializeField]
+		[SerializeField]
 		private GameObject[] _enemyMovementTargets;
 
 		// How often we should spawn a new enemy.
@@ -31,23 +29,28 @@ namespace SpaceShooter
 		[SerializeField]
 		private int _maxEnemyUnitsToSpawn;
 
-        // Maximum amount of players to spawn.
-        [SerializeField]
-        private int _maxPlayerUnitsToSpawn;
-
-        [SerializeField]
+		[SerializeField]
 		private GameObjectPool _playerProjectilePool;
 
 		[SerializeField]
 		private GameObjectPool _enemyProjectilePool;
 
+		[SerializeField]
+		private Spawner _playerSpawner;
+
+		[SerializeField]
+		private int _targetEnemiesKilled = 5;
+
+		[SerializeField]
+		private GameStateType _nextState;
+
+		[SerializeField]
+		private bool _isLastLevel = false;
+
 		// Amount of enemies spawned so far.
 		private int _enemyCount;
 
-        // Amount of players spawned so far.
-        private int _playerCount;
-
-        private PlayerSpaceShip _playerShip;
+		private int _killedEnemies = 0;
 
 		protected void Awake()
 		{
@@ -66,25 +69,17 @@ namespace SpaceShooter
 				//_enemySpawner = GameObject.FindObjectOfType<Spawner>();
 				_enemySpawner = GetComponentInChildren<Spawner>();
 			}
-
-            if (_playerSpawner == null)
-            {
-                Debug.Log("No reference to an player spawner.");
-                //_enemySpawner = GameObject.FindObjectOfType<Spawner>();
-                _playerSpawner = GetComponentInChildren<Spawner>();
-            }
-        }
+		}
 
 		protected void Start()
 		{
 			// Starts a new coroutine.
-			StartCoroutine(SpawnRoutine());
-            StartCoroutine(PlayerSpawn());
+			StartCoroutine(SpawnEnemyRoutine());
+			SpawnPlayer();
 		}
 
-		private IEnumerator SpawnRoutine()
+		private IEnumerator SpawnEnemyRoutine()
 		{
-
 			// Wait for a while before spawning the first enemy.
 			yield return new WaitForSeconds(_waitToSpawn);
 
@@ -105,22 +100,38 @@ namespace SpaceShooter
 			}
 		}
 
-        private IEnumerator PlayerSpawn()
-        {
+		public void EnemyDestroyed()
+		{
+			_killedEnemies++;
+			if(_killedEnemies >= _targetEnemiesKilled)
+			{
+				if(_isLastLevel)
+				{
+					GameManager.Instance.PlayerWins = true;
+				}
 
-            yield return null;
+				if( GameStateController.PerformTransition(_nextState) == false)
+				{
+					Debug.LogError("Could not change state to " + _nextState);
+				}
+			}
+		}
 
-            while (_playerCount < _maxPlayerUnitsToSpawn)
-            {
-                _playerCount++;
+		public PlayerSpaceShip SpawnPlayer()
+		{
+			PlayerSpaceShip player = null;
+			GameObject playerObject = _playerSpawner.Spawn();
+			if (playerObject != null)
+			{
+				player = playerObject.GetComponent<PlayerSpaceShip>();
+			}
 
-                GameObject spawnedPlayerObject = _playerSpawner.Spawn();
-                PlayerSpaceShip playerShip = spawnedPlayerObject.GetComponent<PlayerSpaceShip>();
-            }
-        }
+			player.BecomeImmortal();
 
+			return player;
+		}
 
-        private EnemySpaceShip SpawnEnemyUnit()
+		private EnemySpaceShip SpawnEnemyUnit()
 		{
 			GameObject spawnedEnemyObject = _enemySpawner.Spawn();
 			EnemySpaceShip enemyShip = spawnedEnemyObject.GetComponent<EnemySpaceShip>();
@@ -131,7 +142,7 @@ namespace SpaceShooter
 			return enemyShip;
 		}
 
-        public Projectile GetProjectile(SpaceShipBase.Type type)
+		public Projectile GetProjectile(SpaceShipBase.Type type)
 		{
 			GameObject result = null;
 
@@ -170,6 +181,18 @@ namespace SpaceShooter
 			else
 			{
 				return _enemyProjectilePool.ReturnObject(projectile.gameObject);
+			}
+		}
+
+		public void LivesLost()
+		{
+			if(GameManager.Instance.CurrentLives <= 0)
+			{
+				GameStateController.PerformTransition(GameStateType.GameOver);
+			}
+			else
+			{
+				SpawnPlayer();
 			}
 		}
 	}

@@ -1,5 +1,3 @@
-// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
-
 Shader "TextMeshPro/Mobile/Bitmap" {
 
 Properties {
@@ -86,7 +84,7 @@ SubShader {
 
 			vert.xy += (vert.w * 0.5) / _ScreenParams.xy;
 
-			o.vertex = UnityPixelSnap(UnityObjectToClipPos(vert));
+			o.vertex = UnityPixelSnap(mul(UNITY_MATRIX_MVP, vert));
 			o.color = v.color;
 			o.color *= _Color;
 			o.color.rgb *= _DiffusePower;

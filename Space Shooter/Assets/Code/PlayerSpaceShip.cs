@@ -10,14 +10,17 @@ namespace SpaceShooter
 		public const string VerticalAxis = "Vertical";
 		public const string FireButtonName = "Fire1";
 
-        public int PlayerLives;
+		[SerializeField]
+		private float _immortalTime = 1;
 
-        public override Type UnitType
+		private float _blinkInterval = 0.1f;
+
+		public override Type UnitType
 		{
 			get { return Type.Player; }
 		}
 
-        private Vector3 GetInputVector()
+		private Vector3 GetInputVector()
 		{
 			float horizontalInput = Input.GetAxis(HorizontalAxis);
 			float verticalInput = Input.GetAxis(VerticalAxis);
@@ -42,34 +45,42 @@ namespace SpaceShooter
 			transform.Translate(movementVector * Time.deltaTime);
 		}
 
-        protected override void Die()
-        {
-            if(PlayerLives > 0)
-            {
-                PlayerLives--;
-                this.transform.position = new Vector2( 0, -4 );
-                Health.IncreaseHealth(100);
+		protected override void Die()
+		{
+			base.Die();
+			GameManager.Instance.CurrentLives--;
+		}
 
-                StartCoroutine(Blink(2.0f));
-            } else
-            {
-                base.Die();
-            }
-        }
+		public void BecomeImmortal()
+		{
+			var coroutine = StartCoroutine(ImmortalRoutine());
+		}
 
-        private IEnumerator Blink(float waitTime)
-        {
-            var endTime = Time.time + waitTime;
-            while (Time.time < endTime)
-            {
-                Physics2D.IgnoreLayerCollision(8, 11);
-                //Flicker the ship after spawn
-                GetComponent<Renderer>().enabled = false;
-                yield return new WaitForSeconds(0.2f);
-                GetComponent<Renderer>().enabled = true;
-                yield return new WaitForSeconds(0.2f);
-            }
-            Physics2D.IgnoreLayerCollision(8, 11, false);
-        }
-    }
+		private IEnumerator ImmortalRoutine()
+		{
+			Health.SetImmortal(true);
+			SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+			if(spriteRenderer == null)
+			{
+				throw new System.Exception("No renderer found from Player Spaceship object!");
+			}
+
+			float timer = 0f;
+			Color color = spriteRenderer.color;
+
+			while (timer < _immortalTime)
+			{
+				timer += _blinkInterval;
+				// A short way to write if-else.
+				color.a = color.a == 1 ? 0 : 1;
+				spriteRenderer.color = color;
+				yield return new WaitForSeconds(_blinkInterval);
+			}
+
+			color.a = 1;
+			spriteRenderer.color = color;
+
+			Health.SetImmortal(false);
+		}
+	}
 }
