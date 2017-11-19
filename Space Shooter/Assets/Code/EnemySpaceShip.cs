@@ -12,7 +12,13 @@ namespace SpaceShooter
 		[SerializeField]
 		private int _score;
 
-		private GameObject[] _movementTargets;
+        [SerializeField]
+        private int _dropChance;
+
+        [SerializeField]
+        private GameObject _prefabToSpawn;
+
+        private GameObject[] _movementTargets;
 		private int _currentMovementTargetIndex = 0;
 
 		public Transform CurrentMovementTarget
@@ -37,7 +43,16 @@ namespace SpaceShooter
 
 		protected override void Die()
 		{
-			base.Die();
+
+            int drop = Random.Range(0, 100);
+
+            if(drop <= _dropChance)
+            {
+                GameObject spawnedObject = Instantiate(_prefabToSpawn,
+                transform.position, transform.rotation);
+            }
+
+            base.Die();
 			if(LevelController.Current != null)
 			{
 				LevelController.Current.EnemyDestroyed();
